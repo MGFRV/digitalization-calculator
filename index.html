@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Industrial Digitalization Calculator</title>
+  <style>
+    :root { --max: 40; } /* 20 questions * 2 points */
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 0;
+      background: #f7f7f8;
+      color: #111;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 28px 16px 60px; }
+    header {
+      background: white;
+      border: 1px solid #e6e6e8;
+      border-radius: 14px;
+      padding: 18px 18px 14px;
+      margin-bottom: 16px;
+    }
+    header h1 { margin: 0 0 6px; font-size: 22px; }
+    header p { margin: 0; color: #444; line-height: 1.35; }
+
+    .grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: white;
+      border: 1px solid #e6e6e8;
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .card h2 { margin: 0 0 10px; font-size: 16px; }
+    .muted { color: #555; font-size: 13px; line-height: 1.35; }
+    .pill {
+      display: inline-block;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #efeff1;
+      color: #333;
+      margin: 8px 8px 0 0;
+    }
+
+    .progress {
+      width: 100%;
+      height: 10px;
+      background: #efeff1;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .progress > div { height: 100%; width: 0%; background: #111; }
+
+    details.section { border: 1px solid #efeff1; border-radius: 12px; padding: 10px 12px; margin: 10px 0; }
+    details.section summary { cursor: pointer; font-weight: 650; list-style: none; }
+    details.section summary::-webkit-details-marker { display: none; }
+    .q { padding: 10px 0; border-top: 1px solid #f1f1f3; }
+    .q:first-of-type { border-top: 0; }
+    .q label.title { display: block; font-weight: 600; margin-bottom: 8px; }
+    .choices { display: flex; flex-wrap: wrap; gap: 10px; }
+    .choice {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #e6e6e8;
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: #fff;
+      cursor: pointer;
+      user-select: none;
+    }
+    .choice input { margin: 0; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    button {
+      border: 1px solid #111;
+      background: #111;
+      color: white;
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 650;
+    }
+    button.secondary { background: white; color: #111; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .big { font-size: 28px; font-weight: 800; margin: 2px 0 6px; }
+    .level { font-size: 13px; color: #333; }
+    .divider { height: 1px; background: #efeff1; margin: 14px 0; }
+
+    .bars { display: grid; gap: 10px; margin-top: 8px; }
+    .barrow { display: grid; grid-template-columns: 150px 1fr 52px; gap: 10px; align-items: center; }
+    @media (max-width: 520px) { .barrow { grid-template-columns: 1fr; } }
+    .barlabel { font-size: 13px; color: #222; }
+    .bartrack { height: 10px; background: #efeff1; border-radius: 999px; overflow: hidden; }
+    .barfill { height: 100%; width: 0%; background: #111; }
+    .barpct { font-size: 12px; color: #333; text-align: right; }
+
+    .note { font-size: 12px; color: #555; line-height: 1.35; }
+    .foot { margin-top: 12px; font-size: 12px; color: #666; }
+    .req { color: #b00020; font-size: 12px; display: none; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Industrial Digitalization Calculator</h1>
+      <p>Answer 20 short questions to estimate your industrial digital maturity across production, maintenance, quality, warehouse, energy, safety, and data integration.</p>
+      <div class="progress" aria-label="Progress">
+        <div id="progressFill"></div>
+      </div>
+      <div class="muted" id="progressText" style="margin-top:8px;">0 of 20 answered</div>
+      <div>
+        <span class="pill">No registration</span>
+        <span class="pill">5 minutes</span>
+        <span class="pill">Industrial focus</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <main class="card" aria-label="Questionnaire">
+        <h2>Questionnaire</h2>
+        <p class="muted">Choose one answer per question. You can calculate anytime.</p>
+        <div class="req" id="reqMsg">Please answer at least one question to calculate.</div>
+
+        <!-- SECTION 1 -->
+        <details class="section" open>
+          <summary>1) Production Planning and Scheduling</summary>
+
+          <div class="q" data-domain="planning">
+            <label class="title">1. Is production planning managed in a dedicated system (ERP, APS, MES) rather than spreadsheets</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q1" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q1" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q1" value="0" /> No</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="planning">
+            <label class="title">2. Is there digital shop-floor scheduling and dispatching by workshops and shifts</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q2" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q2" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q2" value="0" /> No</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="planning">
+            <label class="title">3. Are actual output and downtime recorded in a system on the same day</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q3" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q3" value="1" /> Sometimes</label>
+              <label class="choice"><input type="radio" name="q3" value="0" /> No</label>
+            </div>
+          </div>
+        </details>
+
+        <!-- SECTION 2 -->
+        <details class="section">
+          <summary>2) Equipment and Maintenance (EAM / CMMS)</summary>
+
+          <div class="q" data-domain="maintenance">
+            <label class="title">4. Is there a digital asset register with equipment passports, criticality and maintenance history</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q4" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q4" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q4" value="0" /> No</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="maintenance">
+            <label class="title">5. Are maintenance requests created and closed in a system rather than via calls or messages</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q5" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q5" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q5" value="0" /> No</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="maintenance">
+            <label class="title">6. How is maintenance primarily performed</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q6" value="2" /> Scheduled (preventive)</label>
+              <label class="choice"><input type="radio" name="q6" value="2" /> Condition-based</label>
+              <label class="choice"><input type="radio" name="q6" value="0" /> Mostly after breakdowns</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="maintenance">
+            <label class="title">7. Are equipment parameters collected automatically (sensors, machines, production lines)</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q7" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q7" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q7" value="0" /> No</label>
+            </div>
+          </div>
+        </details>
+
+        <!-- SECTION 3 -->
+        <details class="section">
+          <summary>3) Quality and Traceability</summary>
+
+          <div class="q" data-domain="quality">
+            <label class="title">8. Is quality control managed digitally (inspection plans, quality records)</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q8" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q8" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q8" value="0" /> No</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="quality">
+            <label class="title">9. Can a production batch be traced from raw materials to shipment within one day</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q9" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q9" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q9" value="0" /> No</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="quality">
+            <label class="title">10. Are defect causes and corrective actions recorded in a system</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q10" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q10" value="1" /> Sometimes</label>
+              <label class="choice"><input type="radio" name="q10" value="0" /> No</label>
+            </div>
+          </div>
+        </details>
+
+        <!-- SECTION 4 -->
+        <details class="section">
+          <summary>4) Warehouse, Materials and Procurement</summary>
+
+          <div class="q" data-domain="warehouse">
+            <label class="title">11. Is inventory of raw materials and finished goods managed in a system with up-to-date balances</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q11" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q11" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q11" value="0" /> No</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="warehouse">
+            <label class="title">12. Are barcodes or RFID used in warehouse or production operations</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q12" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q12" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q12" value="0" /> No</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="warehouse">
+            <label class="title">13. Are material requests and purchase approvals processed digitally rather than via emails or chats</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q13" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q13" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q13" value="0" /> No</label>
+            </div>
+          </div>
+        </details>
+
+        <!-- SECTION 5 -->
+        <details class="section">
+          <summary>5) Energy and Utilities</summary>
+
+          <div class="q" data-domain="energy">
+            <label class="title">14. Is energy and utilities consumption (electricity, gas, water, steam) automatically measured</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q14" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q14" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q14" value="0" /> No</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="energy">
+            <label class="title">15. Are energy efficiency indicators and losses calculated on a regular basis</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q15" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q15" value="1" /> Sometimes</label>
+              <label class="choice"><input type="radio" name="q15" value="0" /> No</label>
+            </div>
+          </div>
+        </details>
+
+        <!-- SECTION 6 -->
+        <details class="section">
+          <summary>6) Safety and Compliance</summary>
+
+          <div class="q" data-domain="safety">
+            <label class="title">16. Are safety trainings, permits and work authorizations managed digitally</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q16" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q16" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q16" value="0" /> No</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="safety">
+            <label class="title">17. Are there defined cybersecurity practices for operational technology (OT, ICS)</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q17" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q17" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q17" value="0" /> No</label>
+            </div>
+          </div>
+        </details>
+
+        <!-- SECTION 7 -->
+        <details class="section">
+          <summary>7) Data and Integration</summary>
+
+          <div class="q" data-domain="data">
+            <label class="title">18. Are core systems integrated (for example ERP, warehouse, production, maintenance)</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q18" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q18" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q18" value="0" /> No</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="data">
+            <label class="title">19. Are there unified production KPIs (OEE, downtime, output) trusted by both shop floor and management</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q19" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q19" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q19" value="0" /> No</label>
+            </div>
+          </div>
+
+          <div class="q" data-domain="data">
+            <label class="title">20. Is management reporting generated automatically</label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="q20" value="2" /> Yes</label>
+              <label class="choice"><input type="radio" name="q20" value="1" /> Partially</label>
+              <label class="choice"><input type="radio" name="q20" value="0" /> No</label>
+            </div>
+          </div>
+        </details>
+
+        <div class="actions">
+          <button id="calcBtn">Calculate</button>
+          <button class="secondary" id="resetBtn" type="button">Reset</button>
+          <button class="secondary" id="copyBtn" type="button">Copy result summary</button>
+        </div>
+
+        <div class="foot">
+          Scoring: Yes = 2, Partially or Sometimes = 1, No = 0. Maintenance mode: Scheduled or Condition-based = 2, After breakdowns = 0.
+        </div>
+      </main>
+
+      <aside class="card" aria-label="Results">
+        <h2>Results</h2>
+        <div class="muted">Your score updates after you click Calculate. You can still change answers and recalculate.</div>
+
+        <div class="divider"></div>
+
+        <div class="big" id="overallScore">0%</div>
+        <div class="level" id="overallLevel">Answer questions to get your level.</div>
+
+        <div class="divider"></div>
+
+        <h2 style="margin-top:0;">Domain breakdown</h2>
+        <div class="bars" id="bars"></div>
+
+        <div class="divider"></div>
+
+        <h2 style="margin-top:0;">Recommended next steps</h2>
+        <div class="note" id="nextSteps">
+          After calculation, you will see short, practical recommendations based on your lowest domains.
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const MAX_TOTAL = 40; // 20 * 2
+    const domains = [
+      { key: "planning", name: "Planning and Scheduling", max: 6 },     // q1-3
+      { key: "maintenance", name: "Maintenance (EAM/CMMS)", max: 8 },   // q4-7
+      { key: "quality", name: "Quality and Traceability", max: 6 },     // q8-10
+      { key: "warehouse", name: "Warehouse and Procurement", max: 6 },  // q11-13
+      { key: "energy", name: "Energy and Utilities", max: 4 },          // q14-15
+      { key: "safety", name: "Safety and OT Security", max: 4 },        // q16-17
+      { key: "data", name: "Data and Integration", max: 6 },            // q18-20
+    ];
+
+    const progressFill = document.getElementById("progressFill");
+    const progressText = document.getElementById("progressText");
+    const overallScoreEl = document.getElementById("overallScore");
+    const overallLevelEl = document.getElementById("overallLevel");
+    const barsEl = document.getElementById("bars");
+    const nextStepsEl = document.getElementById("nextSteps");
+    const reqMsg = document.getElementById("reqMsg");
+
+    const calcBtn = document.getElementById("calcBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const copyBtn = document.getElementById("copyBtn");
+
+    function getAnsweredCount() {
+      let answered = 0;
+      for (let i = 1; i <= 20; i++) {
+        const picked = document.querySelector(`input[name="q${i}"]:checked`);
+        if (picked) answered++;
+      }
+      return answered;
+    }
+
+    function updateProgress() {
+      const answered = getAnsweredCount();
+      const pct = Math.round((answered / 20) * 100);
+      progressFill.style.width = pct + "%";
+      progressText.textContent = `${answered} of 20 answered`;
+    }
+
+    function getScores() {
+      const domainScores = Object.fromEntries(domains.map(d => [d.key, 0]));
+      let total = 0;
+
+      document.querySelectorAll(".q").forEach(q => {
+        const domain = q.getAttribute("data-domain");
+        const input = q.querySelector("input[type=radio]:checked");
+        if (!input) return;
+
+        const val = Number(input.value);
+        domainScores[domain] += val;
+        total += val;
+      });
+
+      return { total, domainScores };
+    }
+
+    function levelFromPercent(p) {
+      if (p <= 30) return "Initial level: digitalization is fragmented";
+      if (p <= 60) return "Basic level: foundation exists, scale is limited";
+      if (p <= 80) return "Advanced level: consistent practices, room to integrate and optimize";
+      return "High level: strong digital operations and governance";
+    }
+
+    function renderBars(domainScores) {
+      barsEl.innerHTML = "";
+      domains.forEach(d => {
+        const score = domainScores[d.key];
+        const pct = d.max ? Math.round((score / d.max) * 100) : 0;
+
+        const row = document.createElement("div");
+        row.className = "barrow";
+
+        const label = document.createElement("div");
+        label.className = "barlabel";
+        label.textContent = d.name;
+
+        const track = document.createElement("div");
+        track.className = "bartrack";
+
+        const fill = document.createElement("div");
+        fill.className = "barfill";
+        fill.style.width = Math.max(0, Math.min(100, pct)) + "%";
+        track.appendChild(fill);
+
+        const pctEl = document.createElement("div");
+        pctEl.className = "barpct";
+        pctEl.textContent = pct + "%";
+
+        row.appendChild(label);
+        row.appendChild(track);
+        row.appendChild(pctEl);
+        barsEl.appendChild(row);
+      });
+    }
+
+    function topRecommendations(domainScores) {
+      const ranked = domains
+        .map(d => {
+          const score = domainScores[d.key];
+          const pct = d.max ? (score / d.max) : 0;
+          return { key: d.key, name: d.name, pct };
+        })
+        .sort((a, b) => a.pct - b.pct);
+
+      const weakest = ranked.slice(0, 2);
+      const lines = [];
+
+      weakest.forEach(w => {
+        if (w.key === "planning") {
+          lines.push("Planning: implement reliable daily capture of output and downtime, then move to shop-floor dispatching linked to ERP/MES.");
+        } else if (w.key === "maintenance") {
+          lines.push("Maintenance: build a complete asset register, introduce CMMS workflow for requests, then expand to condition monitoring on critical equipment.");
+        } else if (w.key === "quality") {
+          lines.push("Quality: digitize inspection records and corrective actions, then ensure batch traceability from raw materials to shipment.");
+        } else if (w.key === "warehouse") {
+          lines.push("Warehouse: stabilize system inventory accuracy, then add barcode processes for receiving, picking, and issue to production.");
+        } else if (w.key === "energy") {
+          lines.push("Energy: start with automated metering for major consumers, then track energy intensity and losses as a weekly KPI.");
+        } else if (w.key === "safety") {
+          lines.push("Safety: digitize permits and work authorizations, then formalize OT cybersecurity rules and access control for critical systems.");
+        } else if (w.key === "data") {
+          lines.push("Data: integrate core systems around a single KPI set, then automate management reporting with trusted data definitions.");
+        }
+      });
+
+      return lines.length ? ("Focus next on:\n• " + lines.join("\n• ")) : "Answer more questions to get tailored recommendations.";
+    }
+
+    function calculate() {
+      const answered = getAnsweredCount();
+      if (answered === 0) {
+        reqMsg.style.display = "block";
+        return;
+      }
+      reqMsg.style.display = "none";
+
+      const { total, domainScores } = getScores();
+      const pct = Math.round((total / MAX_TOTAL) * 100);
+
+      overallScoreEl.textContent = pct + "%";
+      overallLevelEl.textContent = levelFromPercent(pct);
+
+      renderBars(domainScores);
+      nextStepsEl.textContent = topRecommendations(domainScores);
+    }
+
+    function resetAll() {
+      document.querySelectorAll("input[type=radio]").forEach(i => i.checked = false);
+      updateProgress();
+      overallScoreEl.textContent = "0%";
+      overallLevelEl.textContent = "Answer questions to get your level.";
+      barsEl.innerHTML = "";
+      nextStepsEl.textContent = "After calculation, you will see short, practical recommendations based on your lowest domains.";
+      reqMsg.style.display = "none";
+    }
+
+    function buildCopyText() {
+      const { total, domainScores } = getScores();
+      const pct = Math.round((total / MAX_TOTAL) * 100);
+
+      const parts = [];
+      parts.push(`Industrial Digitalization Calculator`);
+      parts.push(`Overall: ${pct}%`);
+      parts.push(`Level: ${levelFromPercent(pct)}`);
+      parts.push(`Domain breakdown:`);
+      domains.forEach(d => {
+        const score = domainScores[d.key];
+        const p = d.max ? Math.round((score / d.max) * 100) : 0;
+        parts.push(`- ${d.name}: ${p}%`);
+      });
+      parts.push(`Recommendations:`);
+      parts.push(topRecommendations(domainScores));
+      return parts.join("\n");
+    }
+
+    async function copyResult() {
+      const text = buildCopyText();
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = "Copied";
+        setTimeout(() => copyBtn.textContent = "Copy result summary", 1000);
+      } catch (e) {
+        alert("Copy failed. You can select and copy from the page manually.");
+      }
+    }
+
+    document.addEventListener("change", (e) => {
+      if (e.target && e.target.matches("input[type=radio]")) updateProgress();
+    });
+
+    calcBtn.addEventListener("click", calculate);
+    resetBtn.addEventListener("click", resetAll);
+    copyBtn.addEventListener("click", copyResult);
+
+    updateProgress();
+  </script>
+</body>
+</html>
