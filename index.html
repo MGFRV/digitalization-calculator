@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+<!-- build: calc.industry4.co | v0.7.3 | 2026-01-22 | progressive disclosure live -->
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -127,6 +128,24 @@
     .tag input { margin: 0; }
     .small { font-size: 12px; color: #666; line-height: 1.35; margin-top: 6px; }
     .warn { color: #b00020; font-size: 12px; display: none; margin-top: 8px; }
+  
+    /* Progressive disclosure states */
+    details.section.locked {
+      opacity: 0.55;
+      background: #fafafb;
+    }
+    details.section.locked summary { cursor: not-allowed; }
+    details.section.locked .q { pointer-events: none; }
+    details.section.locked input { pointer-events: none; }
+    details.section.locked .choice { cursor: not-allowed; }
+
+    details.section.active {
+      border-color: #d8d8dc;
+    }
+    details.section.completed {
+      opacity: 0.90;
+    }
+
   </style>
 </head>
 
@@ -164,7 +183,7 @@
         <div class="req" id="reqMsg">Please answer at least one question to calculate.</div>
 
         <!-- SECTION 1 -->
-        <details class="section" open>
+        <details class="section" data-section="1" open>
           <summary>1) Production Planning and Scheduling</summary>
 
           <div class="q" data-domain="planning">
@@ -196,7 +215,7 @@
         </details>
 
         <!-- SECTION 2 -->
-        <details class="section">
+        <details class="section" data-section="2">
           <summary>2) Equipment and Maintenance (EAM / CMMS)</summary>
 
           <div class="q" data-domain="maintenance">
@@ -237,7 +256,7 @@
         </details>
 
         <!-- SECTION 3 -->
-        <details class="section">
+        <details class="section" data-section="3">
           <summary>3) Quality and Traceability</summary>
 
           <div class="q" data-domain="quality">
@@ -269,7 +288,7 @@
         </details>
 
         <!-- SECTION 4 -->
-        <details class="section">
+        <details class="section" data-section="4">
           <summary>4) Warehouse, Materials and Procurement</summary>
 
           <div class="q" data-domain="warehouse">
@@ -301,7 +320,7 @@
         </details>
 
         <!-- SECTION 5 -->
-        <details class="section">
+        <details class="section" data-section="5">
           <summary>5) Energy and Utilities</summary>
 
           <div class="q" data-domain="energy">
@@ -324,7 +343,7 @@
         </details>
 
         <!-- SECTION 6 -->
-        <details class="section">
+        <details class="section" data-section="6">
           <summary>6) Safety and Compliance</summary>
 
           <div class="q" data-domain="safety">
@@ -347,7 +366,7 @@
         </details>
 
         <!-- SECTION 7 -->
-        <details class="section">
+        <details class="section" data-section="7">
           <summary>7) Data and Integration</summary>
 
           <div class="q" data-domain="data">
@@ -968,6 +987,7 @@ function calculate() {
         return;
       }
       ptypeWarn.style.display = "none";
+      updateProgressiveDisclosure();
 
       const { total, domainScores } = getScores();
       const pct = Math.round((total / MAX_TOTAL) * 100);
@@ -991,12 +1011,14 @@ function calculate() {
     function resetAll() {
       document.querySelectorAll('input[type="radio"]').forEach(i => i.checked = false);
       updateProgress();
+    updateProgressiveDisclosure();
       overallScoreEl.textContent = "0%";
       overallLevelEl.textContent = "Answer questions and select production type to get your roadmap.";
       barsEl.innerHTML = "";
       nextStepsEl.textContent = "After calculation, you will see a production-type roadmap based on blockers and weakest domains.";
       reqMsg.style.display = "none";
       ptypeWarn.style.display = "none";
+      updateProgressiveDisclosure();
     }
 
     function buildCopyText() {
@@ -1040,14 +1062,99 @@ function calculate() {
       }
     }
 
-    document.addEventListener("change", (e) => {
-      if (e.target && e.target.matches('input[type="radio"]')) {
-        updateProgress();
-        // If user changes production type after calc, keep it simple: do not auto-recalculate
+    
+    // Progressive disclosure by section (visual dimming)
+    const sectionDefs = [
+      { idx: 1, q: [1, 2, 3] },
+      { idx: 2, q: [4, 5, 6, 7] },
+      { idx: 3, q: [8, 9, 10] },
+      { idx: 4, q: [11, 12, 13] },
+      { idx: 5, q: [14, 15] },
+      { idx: 6, q: [16, 17] },
+      { idx: 7, q: [18, 19, 20] },
+    ];
+
+    const sections = sectionDefs
+      .map(s => document.querySelector(`details.section[data-section="${s.idx}"]`))
+      .filter(Boolean);
+
+    function isQuestionAnswered(qn) {
+      return !!document.querySelector(`input[name="q${qn}"]:checked`);
+    }
+
+    function isSectionComplete(sectionIdx) {
+      const def = sectionDefs.find(d => d.idx === sectionIdx);
+      if (!def) return false;
+      return def.q.every(isQuestionAnswered);
+    }
+
+    function firstIncompleteSectionIdx() {
+      for (const def of sectionDefs) {
+        if (!isSectionComplete(def.idx)) return def.idx;
       }
+      return sectionDefs[sectionDefs.length - 1].idx + 1;
+    }
+
+    function setSectionState(sectionEl, state) {
+      sectionEl.classList.remove("locked", "active", "completed");
+      if (state) sectionEl.classList.add(state);
+    }
+
+    function lockSection(sectionEl) {
+      setSectionState(sectionEl, "locked");
+      sectionEl.open = false;
+    }
+
+    function unlockSection(sectionEl, state) {
+      setSectionState(sectionEl, state);
+    }
+
+    function updateProgressiveDisclosure() {
+      const firstIncomplete = firstIncompleteSectionIdx();
+
+      sections.forEach(sec => {
+        const idx = Number(sec.getAttribute("data-section"));
+
+        if (idx < firstIncomplete) {
+          unlockSection(sec, "completed");
+          return;
+        }
+
+        if (idx === firstIncomplete) {
+          unlockSection(sec, "active");
+          sec.open = true;
+          return;
+        }
+
+        lockSection(sec);
+      });
+
+      if (firstIncomplete > sectionDefs[sectionDefs.length - 1].idx) {
+        sections.forEach(sec => {
+          unlockSection(sec, "completed");
+        });
+      }
+    }
+
+    // Prevent opening locked sections
+    sections.forEach(sec => {
+      const summary = sec.querySelector("summary");
+      if (!summary) return;
+      summary.addEventListener("click", (e) => {
+        if (sec.classList.contains("locked")) {
+          e.preventDefault();
+        }
+      });
     });
 
-    calcBtn.addEventListener("click", calculate);
+document.addEventListener("change", (e) => {
+      // Any answer change should immediately update progress and progressive disclosure.
+      if (e.target && e.target.matches('input[type="radio"]')) {
+        updateProgress();
+        updateProgressiveDisclosure();
+      }
+    });
+calcBtn.addEventListener("click", calculate);
     resetBtn.addEventListener("click", resetAll);
     copyBtn.addEventListener("click", copyResult);
 
