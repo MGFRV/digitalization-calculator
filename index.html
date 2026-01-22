@@ -1,10 +1,11 @@
 <!doctype html>
+<!-- build: calc.industry4.co | v0.7.4 | 2026-01-22 | progressive disclosure live + button radios -->
 <html lang="en">
-<!-- build: calc.industry4.co | v0.7.3 | 2026-01-22 | progressive disclosure live -->
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
+  <meta name="app-version" content="v0.7.4" />
   <title>Industrial Digitalization Calculator</title>
   <style>
     :root { --max: 40; } /* 20 questions * 2 points */
@@ -144,6 +145,43 @@
     }
     details.section.completed {
       opacity: 0.90;
+    }
+
+  
+    /* Button-like radio choices (no native radio dot) */
+    .choice input[type="radio"],
+    .tag input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 0;
+      height: 0;
+    }
+
+    .choice, .tag {
+      position: relative;
+      transition: background 120ms ease, border-color 120ms ease, color 120ms ease, transform 120ms ease;
+    }
+
+    /* Hover (only for interactive states) */
+    details.section:not(.locked) .choice:hover,
+    .tag:hover {
+      border-color: #cfcfd6;
+      transform: translateY(-1px);
+    }
+
+    /* Selected state class set by JS */
+    .choice.selected,
+    .tag.selected {
+      background: #111;
+      border-color: #111;
+      color: #fff;
+    }
+
+    details.section:not(.locked) .choice.selected:hover,
+    .tag.selected:hover {
+      border-color: #111;
+      transform: none;
     }
 
   </style>
@@ -404,8 +442,7 @@
         </div>
 
         <div class="foot">
-          Assessment focuses on operational discipline, data reliability, and process ownership rather than tool names or technology labels.
-        </div>
+          Assessment focuses on operational discipline, data reliability, and process ownership rather than tool names or technology labels. • Build v0.7.4</div>
       </main>
 
       <aside class="card" aria-label="Results">
@@ -971,6 +1008,23 @@
 
       return out.join("");
     }
+
+    function syncSelectedLabels() {
+      // Production type buttons
+      document.querySelectorAll('label.tag').forEach(lbl => {
+        const inp = lbl.querySelector('input[type="radio"]');
+        if (!inp) return;
+        lbl.classList.toggle('selected', inp.checked);
+      });
+
+      // Answer choices
+      document.querySelectorAll('label.choice').forEach(lbl => {
+        const inp = lbl.querySelector('input[type="radio"]');
+        if (!inp) return;
+        lbl.classList.toggle('selected', inp.checked);
+      });
+    }
+
 function calculate() {
       const answered = getAnsweredCount();
       const effectiveType = getProductionTypeEffective();
@@ -988,6 +1042,9 @@ function calculate() {
       }
       ptypeWarn.style.display = "none";
       updateProgressiveDisclosure();
+      syncSelectedLabels();
+    syncSelectedLabels();
+        syncSelectedLabels();
 
       const { total, domainScores } = getScores();
       const pct = Math.round((total / MAX_TOTAL) * 100);
@@ -1012,6 +1069,8 @@ function calculate() {
       document.querySelectorAll('input[type="radio"]').forEach(i => i.checked = false);
       updateProgress();
     updateProgressiveDisclosure();
+      syncSelectedLabels();
+        syncSelectedLabels();
       overallScoreEl.textContent = "0%";
       overallLevelEl.textContent = "Answer questions and select production type to get your roadmap.";
       barsEl.innerHTML = "";
@@ -1019,6 +1078,8 @@ function calculate() {
       reqMsg.style.display = "none";
       ptypeWarn.style.display = "none";
       updateProgressiveDisclosure();
+      syncSelectedLabels();
+        syncSelectedLabels();
     }
 
     function buildCopyText() {
@@ -1152,6 +1213,8 @@ document.addEventListener("change", (e) => {
       if (e.target && e.target.matches('input[type="radio"]')) {
         updateProgress();
         updateProgressiveDisclosure();
+      syncSelectedLabels();
+        syncSelectedLabels();
       }
     });
 calcBtn.addEventListener("click", calculate);
