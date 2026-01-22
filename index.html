@@ -1,11 +1,11 @@
 <!doctype html>
-<!-- build: calc.industry4.co | v0.7.5 | 2026-01-22 | progressive disclosure live + button radios -->
+<!-- build: calc.industry4.co | v0.7.5.2 | 2026-01-22 | progressive disclosure live + button radios -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
-  <meta name="app-version" content="v0.7.5" />
+  <meta name="app-version" content="v0.7.5.2" />
   <title>Industrial Digitalization Calculator</title>
   <style>
     :root { --max: 40; } /* 20 questions * 2 points */
@@ -445,7 +445,7 @@
           Assessment focuses on operational discipline, data reliability, and process ownership rather than tool names or technology labels.</div>
       </main>
 
-      <aside class="card" aria-label="Results">
+      <aside class="card" aria-label="Results" id="results">
         <h2>Results</h2>
         <div class="muted">Your score updates after you click Calculate. You can still change answers and recalculate.</div>
 
@@ -941,7 +941,9 @@
     
     function sanitizeRoadmapText(text) {
       // Remove "Step N - " prefixes from any line (keeps the content, removes numbering).
-      return String(text || "").replace(/^Step\s+\d+\s*-\s*/gm, "");
+      return String(text || "")
+        .replace(/^Step\s+\d+\s*-\s*/gm, "")
+        .replace(/^(Discrete|Process):\s*/gmi, "");
     }
 
 
@@ -1053,10 +1055,7 @@ function calculate() {
     });
 
       syncSelectedLabels();
-    syncSelectedLabels();
-        syncSelectedLabels();
-
-      const { total, domainScores } = getScores();
+const { total, domainScores } = getScores();
       const pct = Math.round((total / MAX_TOTAL) * 100);
 
       overallScoreEl.textContent = pct + "%";
@@ -1073,24 +1072,41 @@ function calculate() {
 
       const roadmap = buildRoadmapText(domainScores, effectiveType);
       nextStepsEl.innerHTML = formatRoadmapToHTML(roadmap);
+
+      // Jump to Results (mobile-friendly)
+      const resultsEl = document.getElementById("results");
+      if (resultsEl && typeof resultsEl.scrollIntoView === "function") {
+        resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }
 
     function resetAll() {
+      requestAnimationFrame(() => {
+        try {
+          window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+        } catch (e) {
+          window.scrollTo(0, 0);
+        }
+      });
+      setTimeout(() => window.scrollTo(0, 0), 200);
       document.querySelectorAll('input[type="radio"]').forEach(i => i.checked = false);
       updateProgress();
     updateProgressiveDisclosure();
       syncSelectedLabels();
-        syncSelectedLabels();
-      overallScoreEl.textContent = "0%";
+overallScoreEl.textContent = "0%";
       overallLevelEl.textContent = "Answer questions and select production type to get your roadmap.";
+
+      // Clear roadmap header and text
+      const roadmapTitleEl = document.getElementById("roadmapTitle");
+      if (roadmapTitleEl) roadmapTitleEl.textContent = "Recommended next steps";
+      nextStepsEl.innerHTML = "After calculation, you will see a production-type roadmap based on blockers and weakest domains.";
       barsEl.innerHTML = "";
-      nextStepsEl.textContent = "After calculation, you will see a production-type roadmap based on blockers and weakest domains.";
+      // nextSteps placeholder set above as HTML
       reqMsg.style.display = "none";
       ptypeWarn.style.display = "none";
       updateProgressiveDisclosure();
       syncSelectedLabels();
-        syncSelectedLabels();
-    }
+}
 
     function buildCopyText() {
       const effectiveType = getProductionTypeEffective();
@@ -1224,8 +1240,7 @@ document.addEventListener("change", (e) => {
         updateProgress();
         updateProgressiveDisclosure();
       syncSelectedLabels();
-        syncSelectedLabels();
-      }
+}
     });
 calcBtn.addEventListener("click", calculate);
     resetBtn.addEventListener("click", resetAll);
@@ -1235,7 +1250,7 @@ calcBtn.addEventListener("click", calculate);
   </script>
 
   <div style="text-align:center; color:#aaa; font-size:11px; padding:18px 0;">
-    Build v0.7.5
+    Build v0.7.5.2
   </div>
 
 </body>
