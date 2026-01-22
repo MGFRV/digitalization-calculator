@@ -1,11 +1,11 @@
 <!doctype html>
-<!-- build: calc.industry4.co | v0.7.4 | 2026-01-22 | progressive disclosure live + button radios -->
+<!-- build: calc.industry4.co | v0.7.5 | 2026-01-22 | progressive disclosure live + button radios -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
-  <meta name="app-version" content="v0.7.4" />
+  <meta name="app-version" content="v0.7.5" />
   <title>Industrial Digitalization Calculator</title>
   <style>
     :root { --max: 40; } /* 20 questions * 2 points */
@@ -442,7 +442,7 @@
         </div>
 
         <div class="foot">
-          Assessment focuses on operational discipline, data reliability, and process ownership rather than tool names or technology labels. • Build v0.7.4</div>
+          Assessment focuses on operational discipline, data reliability, and process ownership rather than tool names or technology labels.</div>
       </main>
 
       <aside class="card" aria-label="Results">
@@ -1042,6 +1042,16 @@ function calculate() {
       }
       ptypeWarn.style.display = "none";
       updateProgressiveDisclosure();
+    syncSelectedLabels();
+
+    // Ensure clean state on hard refresh (prevent browser restoring radio state)
+    window.addEventListener("load", () => {
+      document.querySelectorAll('input[type="radio"]').forEach(i => i.checked = false);
+      updateProgress();
+      updateProgressiveDisclosure();
+      syncSelectedLabels();
+    });
+
       syncSelectedLabels();
     syncSelectedLabels();
         syncSelectedLabels();
@@ -1223,5 +1233,10 @@ calcBtn.addEventListener("click", calculate);
 
     updateProgress();
   </script>
+
+  <div style="text-align:center; color:#aaa; font-size:11px; padding:18px 0;">
+    Build v0.7.5
+  </div>
+
 </body>
 </html>
