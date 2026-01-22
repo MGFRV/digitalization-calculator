@@ -1,11 +1,11 @@
 <!doctype html>
-<!-- build: calc.industry4.co | v0.7.5.2 | 2026-01-22 | progressive disclosure live + button radios -->
+<!-- build: calc.industry4.co | v0.7.5.7 | 2026-01-22 | progressive disclosure live + button radios -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
-  <meta name="app-version" content="v0.7.5.2" />
+  <meta name="app-version" content="v0.7.5.7" />
   <title>Industrial Digitalization Calculator</title>
   <style>
     :root { --max: 40; } /* 20 questions * 2 points */
@@ -184,7 +184,47 @@
       transform: none;
     }
 
-  </style>
+  
+  @media print {
+    body {
+      background: white !important;
+      color: black !important;
+    }
+
+    header,
+    main,
+    .progress,
+    .pill,
+    .actions {
+      display: none !important;
+    }
+
+    .grid {
+      display: block !important;
+    }
+
+    .results-card {
+      width: 100% !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
+    }
+
+    .results-card h2 {
+      margin-top: 24px;
+    }
+
+    .bars .bartrack {
+      background: #ccc !important;
+    }
+
+    .barfill {
+      background: #000 !important;
+    }
+  }
+
+</style>
 </head>
 
 <body>
@@ -438,7 +478,7 @@
         <div class="actions">
           <button id="calcBtn">Calculate</button>
           <button class="secondary" id="resetBtn" type="button">Reset</button>
-          <button class="secondary" id="copyBtn" type="button">Copy result summary</button>
+          
         </div>
 
         <div class="foot">
@@ -463,6 +503,13 @@
 
         <h2 style="margin-top:0;" id="roadmapTitle">Recommended next steps</h2>
         <div class="note" id="nextSteps">After calculation, you will see a production-type roadmap based on blockers and weakest domains.</div>
+
+        <div class="actions" id="resultActions" style="display:none;">
+          <button class="secondary" type="button" onclick="copyResults()">Copy</button>
+          <button class="secondary" type="button" onclick="printResults()">Print</button>
+          <button class="primary" type="button" id="discussBtn">Discuss your results</button>
+        </div>
+
       </aside>
     </div>
   </div>
@@ -491,7 +538,6 @@
 
     const calcBtn = document.getElementById("calcBtn");
     const resetBtn = document.getElementById("resetBtn");
-    const copyBtn = document.getElementById("copyBtn");
 
     function getProductionTypeRaw() {
       const picked = document.querySelector('input[name="ptype"]:checked');
@@ -1040,28 +1086,36 @@ function calculate() {
 
       if (!effectiveType) {
         ptypeWarn.style.display = "block";
+        // Scroll to production type warning
+        const warnEl = document.getElementById("ptypeWarn");
+        if (warnEl && typeof warnEl.scrollIntoView === "function") {
+          warnEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
         return;
       }
       ptypeWarn.style.display = "none";
-      updateProgressiveDisclosure();
-    syncSelectedLabels();
-
-    // Ensure clean state on hard refresh (prevent browser restoring radio state)
-    window.addEventListener("load", () => {
-      document.querySelectorAll('input[type="radio"]').forEach(i => i.checked = false);
-      updateProgress();
+      const ra = document.getElementById("resultActions"); if (ra) ra.style.display = "none";
       updateProgressiveDisclosure();
       syncSelectedLabels();
-    });
 
-      syncSelectedLabels();
-const { total, domainScores } = getScores();
+      const { total, domainScores } = getScores();
       const pct = Math.round((total / MAX_TOTAL) * 100);
 
       overallScoreEl.textContent = pct + "%";
       overallLevelEl.textContent = overallLevelFromPercent(pct);
 
       renderBars(domainScores);
+      // Persist calculated results for copy/print/zapier share
+      const maturity = overallLevelFromPercent(pct);
+      const roadmapText = sanitizeRoadmapText(buildRoadmapText(domainScores, effectiveType));
+      window.assessmentState.productionType = effectiveType;
+      window.assessmentState.overallScore = pct;
+      window.assessmentState.maturityLevel = maturity;
+      window.assessmentState.domainScores = domainScores;
+      window.assessmentState.answersRaw = buildAnswersRaw();
+      window.assessmentState.roadmapText = roadmapText;
+
+
 
       
       const roadmapTitleEl = document.getElementById("roadmapTitle");
@@ -1072,6 +1126,7 @@ const { total, domainScores } = getScores();
 
       const roadmap = buildRoadmapText(domainScores, effectiveType);
       nextStepsEl.innerHTML = formatRoadmapToHTML(roadmap);
+      document.getElementById("resultActions").style.display = "flex";
 
       // Jump to Results (mobile-friendly)
       const resultsEl = document.getElementById("results");
@@ -1104,11 +1159,22 @@ overallScoreEl.textContent = "0%";
       // nextSteps placeholder set above as HTML
       reqMsg.style.display = "none";
       ptypeWarn.style.display = "none";
+      const ra = document.getElementById("resultActions"); if (ra) ra.style.display = "none";
       updateProgressiveDisclosure();
       syncSelectedLabels();
 }
 
-    function buildCopyText() {
+    
+    function buildAnswersRaw() {
+      const pairs = [];
+      for (let i = 1; i <= 20; i++) {
+        const picked = document.querySelector(`input[name="q${i}"]:checked`);
+        if (picked) pairs.push(`q${i}=${picked.value}`);
+      }
+      return pairs.join(",");
+    }
+
+function buildCopyText() {
       const effectiveType = getProductionTypeEffective();
       const rawType = getProductionTypeRaw();
 
@@ -1138,16 +1204,6 @@ overallScoreEl.textContent = "0%";
       return parts.join("\n");
     }
 
-    async function copyResult() {
-      const text = buildCopyText();
-      try {
-        await navigator.clipboard.writeText(text);
-        copyBtn.textContent = "Copied";
-        setTimeout(() => copyBtn.textContent = "Copy result summary", 1000);
-      } catch (e) {
-        alert("Copy failed. You can select and copy from the page manually.");
-      }
-    }
 
     
     // Progressive disclosure by section (visual dimming)
@@ -1244,14 +1300,199 @@ document.addEventListener("change", (e) => {
     });
 calcBtn.addEventListener("click", calculate);
     resetBtn.addEventListener("click", resetAll);
-    copyBtn.addEventListener("click", copyResult);
 
     updateProgress();
-  </script>
+
+    // Ensure clean state on hard refresh
+    window.addEventListener("load", () => {
+      document.querySelectorAll('input[type="radio"]').forEach(i => i.checked = false);
+      updateProgress();
+      updateProgressiveDisclosure();
+      syncSelectedLabels();
+    });
+  
+    function copyResults() {
+      const btn = document.activeElement;
+      const text = buildCopyText();
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      if (btn && btn.tagName === "BUTTON") {
+        const original = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(() => btn.textContent = original, 1200);
+      }
+    }
+
+    function printResults() {
+      window.print();
+    }
+  
+  
+  document.addEventListener("DOMContentLoaded", () => {
+const discussBtn = document.getElementById("discussBtn");
+  const modal = document.getElementById("discussModal");
+  const backdrop = document.getElementById("modalBackdrop");
+  const closeBtn = document.getElementById("modalClose");
+  const shareBtn = document.getElementById("shareBtn");
+  const shareError = document.getElementById("shareError");
+
+  function openModal() {
+    modal.style.display = "block";
+    backdrop.style.display = "block";
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeModal() {
+    modal.style.display = "none";
+    backdrop.style.display = "none";
+    document.body.style.overflow = "";
+    shareBtn.disabled = false;
+    shareBtn.textContent = "Share";
+    shareError.style.display = "none";
+  }
+
+  if (discussBtn) {
+    discussBtn.addEventListener("click", openModal);
+  }
+
+  backdrop.addEventListener("click", closeModal);
+  closeBtn.addEventListener("click", closeModal);
+
+  async function sendToZapierForm(fields) {
+    const params = new URLSearchParams();
+    Object.entries(fields).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      params.set(k, String(v));
+    });
+
+    return fetch("https://hooks.zapier.com/hooks/catch/26151464/uq5szpi/", {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: params.toString()
+    });
+  }
+
+  shareBtn.addEventListener("click", async () => {
+    const name = document.getElementById("inpName").value.trim();
+    const company = document.getElementById("inpCompany").value.trim();
+    const email = document.getElementById("inpEmail").value.trim();
+    const lan = document.getElementById("inpLan").checked;
+
+    if (!name || !company || !email) {
+      shareError.style.display = "block";
+      return;
+    }
+
+    shareBtn.disabled = true;
+    shareBtn.textContent = "Sent!";
+    shareError.style.display = "none";
+
+    const s = window.assessmentState || {};
+
+    if (s.overallScore === null || s.overallScore === undefined) {
+      shareBtn.disabled = false;
+      shareBtn.textContent = "Share";
+      shareError.textContent = "Please click Calculate first.";
+      shareError.style.display = "block";
+      return;
+    }
+
+    const fields = {
+      source: "digitalization_calculator",
+      build_version: "0.7.5.7",
+      timestamp: new Date().toISOString(),
+
+      name,
+      company,
+      email,
+      lan_available: lan ? "Yes" : "No",
+
+      production_type: s.productionType || "",
+      overall_score: s.overallScore,
+      maturity_level: s.maturityLevel || "",
+
+      domain_planning: (s.domainScores && s.domainScores.planning !== undefined) ? s.domainScores.planning : "",
+      domain_maintenance: (s.domainScores && s.domainScores.maintenance !== undefined) ? s.domainScores.maintenance : "",
+      domain_quality: (s.domainScores && s.domainScores.quality !== undefined) ? s.domainScores.quality : "",
+      domain_warehouse: (s.domainScores && s.domainScores.warehouse !== undefined) ? s.domainScores.warehouse : "",
+      domain_energy: (s.domainScores && s.domainScores.energy !== undefined) ? s.domainScores.energy : "",
+      domain_safety: (s.domainScores && s.domainScores.safety !== undefined) ? s.domainScores.safety : "",
+      domain_data: (s.domainScores && s.domainScores.data !== undefined) ? s.domainScores.data : "",
+
+      answers_raw: s.answersRaw || "",
+      recommended_roadmap: s.roadmapText || ""
+    };
+
+    try {
+      await sendToZapierForm(fields);
+      setTimeout(closeModal, 5000);
+    } catch (e) {
+      shareBtn.disabled = false;
+      shareBtn.textContent = "Share";
+      shareError.textContent = "Something went wrong. Please try again.";
+      shareError.style.display = "block";
+    }
+  });
+  });
+
+  // Global assessment state
+  window.assessmentState = {
+    productionType: null,
+    overallScore: null,
+    maturityLevel: null,
+    domainScores: null,
+    answersRaw: null,
+    roadmapText: null
+  };
+
+
+  function canDiscussResults() {
+    return (
+      window.assessmentState &&
+      window.assessmentState.productionType &&
+      window.assessmentState.overallScore !== null
+    );
+  }
+
+</script>
 
   <div style="text-align:center; color:#aaa; font-size:11px; padding:18px 0;">
-    Build v0.7.5.2
+    Build v0.7.5.7
   </div>
+
+
+<div id="modalBackdrop" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999;"></div>
+
+<div id="discussModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  background:#fff; width:90%; max-width:460px; border-radius:12px; padding:20px; z-index:1000;">
+  <button id="modalClose" style="background:none;border:none;font-size:18px;position:absolute;top:12px;right:12px;color:#000;cursor:pointer;">×</button>
+  <h2 style="margin-top:0;">Review your digitalization results</h2>
+  <p class="muted">Share your contact details and we’ll review your results and suggest practical next steps.</p>
+
+  <div style="display:grid;gap:10px;">
+    <input id="inpName" placeholder="Name *" />
+    <input id="inpCompany" placeholder="Company *" />
+    <input id="inpEmail" placeholder="Work email *" />
+    <label style="font-size:13px;">
+      <input type="checkbox" id="inpLan" /> Factory has LAN network
+    </label>
+  </div>
+
+  <button id="shareBtn" class="primary" style="margin-top:14px;width:100%;">Share</button>
+  <div id="shareError" style="display:none;color:#b00020;font-size:12px;margin-top:8px;">
+    Something went wrong. Please try again.
+  </div>
+
+  <div style="font-size:11px;color:#666;margin-top:14px;line-height:1.4;">
+    We only use your data to review your results and follow up on this request.
+    Your information is not stored on this website.
+  </div>
+</div>
 
 </body>
 </html>
