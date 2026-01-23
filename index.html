@@ -1,11 +1,11 @@
 <!doctype html>
-<!-- build: calc.industry4.co | v0.7.5.7 | 2026-01-22 | progressive disclosure live + button radios -->
+<!-- build: calc.industry4.co | v0.7.5.8 | 2026-01-23 | chat bot deployment -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
-  <meta name="app-version" content="v0.7.5.7" />
+  <meta name="app-version" content="v0.7.5.8" />
   <title>Industrial Digitalization Calculator</title>
   <style>
     :root { --max: 40; } /* 20 questions * 2 points */
@@ -1462,7 +1462,7 @@ const discussBtn = document.getElementById("discussBtn");
 </script>
 
   <div style="text-align:center; color:#aaa; font-size:11px; padding:18px 0;">
-    Build v0.7.5.7
+    Build v0.7.5.8
   </div>
 
 
@@ -1493,6 +1493,15 @@ const discussBtn = document.getElementById("discussBtn");
     Your information is not stored on this website.
   </div>
 </div>
+
+
+<!-- Zapier Interfaces Chatbot -->
+<script async type="module" src="https://interfaces.zapier.com/assets/web-components/zapier-interfaces/zapier-interfaces.esm.js"></script>
+<zapier-interfaces-chatbot-embed
+  is-popup="true"
+  chatbot-id="cmkqpxg9d001aimclew41reft">
+</zapier-interfaces-chatbot-embed>
+<!-- End Zapier Chatbot -->
 
 </body>
 </html>
