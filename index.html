@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
-  <meta name="app-version" content="v0.7.6" />
+  <meta name="app-version" content="v0.7.6.1" />
   <title>Industrial Digitalization Calculator</title>
   <style>
     :root { --max: 40; } /* 20 questions * 2 points */
@@ -1206,7 +1206,14 @@ function calculate() {
       window.assessmentState.domainScores = domainScores;
       window.assessmentState.answersRaw = buildAnswersRaw();
       window.assessmentState.roadmapText = roadmapText;
-
+		try {
+		  localStorage.setItem(
+		    'i4_calc_result',
+		    JSON.stringify(window.assessmentState)
+		  );
+		} catch (e) {
+		  console.warn('Failed to persist assessment state', e);
+		}
 
 
       
@@ -1261,6 +1268,24 @@ overallScoreEl.textContent = "0%";
       const ra = document.getElementById("resultActions"); if (ra) ra.style.display = "none";
       updateProgressiveDisclosure();
       syncSelectedLabels();
+	  
+	  // Clear persisted assessment state
+		try {
+		  localStorage.removeItem('i4_calc_result');
+		} catch (e) {
+		  console.warn('Failed to clear persisted assessment state', e);
+		}
+		
+		// Reset in-memory state
+		window.assessmentState = {
+		  productionType: null,
+		  overallScore: null,
+		  maturityLevel: null,
+		  domainScores: null,
+		  answersRaw: null,
+		  roadmapText: null
+		};
+
 }
 
     
@@ -1549,6 +1574,33 @@ const discussBtn = document.getElementById("discussBtn");
     roadmapText: null
   };
 
+(function restoreAssessmentState() {
+  try {
+    const raw = localStorage.getItem('i4_calc_result');
+    if (!raw) return;
+
+    const saved = JSON.parse(raw);
+    if (!saved || saved.overallScore == null) return;
+
+    window.assessmentState = saved;
+
+    // Optional visual hint
+    const hint = document.createElement('div');
+    hint.style.cssText = `
+      background:#f0f7ff;
+      border:1px solid #cfe3ff;
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:13px;
+      margin-bottom:12px;
+    `;
+    hint.textContent = 'Your previous results were restored.';
+    document.getElementById('results')?.prepend(hint);
+
+  } catch (e) {
+    console.warn('Failed to restore assessment state', e);
+  }
+})();
 
   function canDiscussResults() {
     return (
@@ -1561,7 +1613,7 @@ const discussBtn = document.getElementById("discussBtn");
 </script>
 
   <div style="text-align:center; color:#aaa; font-size:11px; padding:18px 0;">
-    Build v0.7.6
+    Build v0.7.6.1
   </div>
 
 
@@ -1768,5 +1820,4 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 </body>
 </html>
-
 
