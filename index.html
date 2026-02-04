@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- build: calc.industry4.co | v0.7.6 | 2026-01-23 | chat bot deployment -->
+<!-- build: calc.industry4.co | v0.7.6.1 | 2026-02-04 |  -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -1587,14 +1587,14 @@ const discussBtn = document.getElementById("discussBtn");
     // Optional visual hint
     const hint = document.createElement('div');
     hint.style.cssText = `
-      background:#f0f7ff;
+      background:#F2F2F2;
       border:1px solid #cfe3ff;
       border-radius:10px;
       padding:10px 12px;
       font-size:13px;
       margin-bottom:12px;
     `;
-    hint.textContent = 'Your previous results were restored.';
+    hint.textContent = 'Your test results were shared with an expert. You may close this window.';
     document.getElementById('results')?.prepend(hint);
 
   } catch (e) {
@@ -1820,4 +1820,5 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 </body>
 </html>
+
 
