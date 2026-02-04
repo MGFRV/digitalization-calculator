@@ -1721,8 +1721,52 @@ if (aiBtn && aiInline) {
   chatbot-id="cml50ztkd005dtsrvp9tsl8hb"
   is-popup="true">
 </zapier-interfaces-chatbot-embed>
+	
+<!-- test -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('discussModal');
+  const backdrop = document.getElementById('modalBackdrop');
+  const closeBtn = document.getElementById('modalClose');
 
+  function openContactModal() {
+    if (!modal || !backdrop) return;
 
+    modal.style.display = 'block';
+    backdrop.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    try {
+      track('contact_expert_opened', {
+        source: 'hash',
+        production_type: window.assessmentState?.productionType || 'unknown'
+      });
+    } catch (e) {}
+  }
+
+  function closeContactModal() {
+    if (!modal || !backdrop) return;
+
+    modal.style.display = 'none';
+    backdrop.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  const contactBtn = document.getElementById('contactExpertBtn');
+  if (contactBtn) {
+    contactBtn.addEventListener('click', openContactModal);
+  }
+
+  if (backdrop) backdrop.addEventListener('click', closeContactModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeContactModal);
+	
+  if (window.location.hash === '#contact') {
+    setTimeout(openContactModal, 200);
+  }
+});
+</script>
+	
 </body>
 </html>
+
 
