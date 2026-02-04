@@ -1,11 +1,11 @@
 <!doctype html>
-<!-- build: calc.industry4.co | v0.7.5.8 | 2026-01-23 | chat bot deployment -->
+<!-- build: calc.industry4.co | v0.7.6 | 2026-01-23 | chat bot deployment -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
-  <meta name="app-version" content="v0.7.5.8" />
+  <meta name="app-version" content="v0.7.6" />
   <title>Industrial Digitalization Calculator</title>
   <style>
     :root { --max: 40; } /* 20 questions * 2 points */
@@ -224,7 +224,69 @@
     }
   }
 
+
+@media print {
+
+  /* 1. Hide everything */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* 2. Allow only Results */
+  #results,
+  #results * {
+    visibility: visible !important;
+  }
+
+  /* 3. Exclude inline AI helper explicitly */
+  #aiInlineHelp,
+  #aiInlineHelp * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* 4. Remove buttons and interactive UI inside Results */
+  #results button,
+  #results .no-print,
+  zapier-interfaces-chatbot-embed {
+    display: none !important;
+  }
+
+  /* 5. Layout cleanup */
+  #results {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+    background: white;
+  }
+
+  body {
+    background: white !important;
+  }
+}
+
+
 </style>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GN2KYF1EF5"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GN2KYF1EF5', { anonymize_ip: true });
+
+  function track(event, params = {}) {
+    if (window.gtag) {
+      gtag('event', event, params);
+    }
+  }
+</script>
+
 </head>
 
 <body>
@@ -504,13 +566,41 @@
         <h2 style="margin-top:0;" id="roadmapTitle">Recommended next steps</h2>
         <div class="note" id="nextSteps">After calculation, you will see a production-type roadmap based on blockers and weakest domains.</div>
 
-        <div class="actions" id="resultActions" style="display:none;">
-          <button class="secondary" type="button" onclick="copyResults()">Copy</button>
-          <button class="secondary" type="button" onclick="printResults()">Print</button>
-          <button class="primary" type="button" id="discussBtn">Discuss your results</button>
-        </div>
+<div id="resultsActions"
+     style="display:none;">
 
-      </aside>
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+   <button id="aiDiscussBtn" class="primary" style="width:100%;"> Discuss your results with AI</button>
+    <button id="copyBtn" class="secondary" type="button">Copy</button>
+    <button id="printBtn" class="secondary" type="button">Print</button>
+    <button id="contactExpertBtn" class="primary" type="button">Contact expert</button>
+  </div>
+</div>
+
+<div id="aiInlineHelp"
+     style="display:none; margin-top:14px; padding:14px;
+            border:1px solid #e6e6e8; border-radius:12px;
+            background:#fafafb;">
+			
+
+  <div style="font-weight:600; margin-bottom:6px;">
+    ✓ AI assistant is ready
+  </div>
+
+  <div class="muted" style="line-height:1.4;">
+    The discussion continues in the chat icon at the bottom-right corner.
+    <br><br>
+    <strong>How to proceed:</strong><br>
+    1. Click <em>Copy</em><br>
+    2. Open the AI chat<br>
+    3. Paste results and explore your digital transformation
+  </div>
+</div>
+
+
+</aside>
+
+        
     </div>
   </div>
 
@@ -538,6 +628,8 @@
 
     const calcBtn = document.getElementById("calcBtn");
     const resetBtn = document.getElementById("resetBtn");
+	
+	
 
     function getProductionTypeRaw() {
       const picked = document.querySelector('input[name="ptype"]:checked');
@@ -1118,14 +1210,19 @@ function calculate() {
 
 
       
-      const roadmapTitleEl = document.getElementById("roadmapTitle");
-      roadmapTitleEl.textContent =
-        effectiveType === "process"
-          ? "Recommended next steps for Process industry"
-          : "Recommended next steps for Discrete manufacturing";
+     const roadmapTitleEl = document.getElementById("roadmapTitle");
+		if (roadmapTitleEl) {
+	 	 roadmapTitleEl.textContent =
+	   	 effectiveType === "process"
+	      ? "Recommended next steps for Process industry"
+	      : "Recommended next steps for Discrete manufacturing";
+			}
 
       const roadmap = buildRoadmapText(domainScores, effectiveType);
       nextStepsEl.innerHTML = formatRoadmapToHTML(roadmap);
+	  if (nextStepsEl) {
+		  nextStepsEl.innerHTML = formatRoadmapToHTML(roadmap);
+		}
       document.getElementById("resultActions").style.display = "flex";
 
       // Jump to Results (mobile-friendly)
@@ -1153,6 +1250,8 @@ overallScoreEl.textContent = "0%";
 
       // Clear roadmap header and text
       const roadmapTitleEl = document.getElementById("roadmapTitle");
+	  const aiInline = document.getElementById('aiInlineHelp');
+	  if (aiInline) aiInline.style.display = 'none';
       if (roadmapTitleEl) roadmapTitleEl.textContent = "Recommended next steps";
       nextStepsEl.innerHTML = "After calculation, you will see a production-type roadmap based on blockers and weakest domains.";
       barsEl.innerHTML = "";
@@ -1404,7 +1503,7 @@ const discussBtn = document.getElementById("discussBtn");
 
     const fields = {
       source: "digitalization_calculator",
-      build_version: "0.7.5.8",
+      build_version: "0.7.6",
       timestamp: new Date().toISOString(),
 
       name,
@@ -1462,7 +1561,7 @@ const discussBtn = document.getElementById("discussBtn");
 </script>
 
   <div style="text-align:center; color:#aaa; font-size:11px; padding:18px 0;">
-    Build v0.7.5.8
+    Build v0.7.6
   </div>
 
 
@@ -1495,15 +1594,135 @@ const discussBtn = document.getElementById("discussBtn");
 </div>
 
 
-<!-- Zapier Interfaces Chatbot -->
-<script async type='module' src='https://interfaces.zapier.com/assets/web-components/zapier-interfaces/zapier-interfaces.esm.js'></script>
-<zapier-interfaces-chatbot-embed 
-  is-popup='true'
-  chatbot-id='cml50ztkd005dtsrvp9tsl8hb'>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const actions = document.getElementById("resultsActions");
+	if (actions) actions.style.display = "none";
+  const calcBtn = document.getElementById('calcBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  function isVisible(el) {
+    if (!el) return false;
+    const cs = window.getComputedStyle(el);
+    return cs.display !== 'none' && cs.visibility !== 'hidden' && cs.opacity !== '0';
+  }
+
+  function shouldShowActions() {
+    // Show only when the Calculate action is successful:
+    // - production type selected (ptypeWarn not visible)
+    // - at least one question answered (reqMsg not visible)
+    const reqMsg = document.getElementById('reqMsg');
+    const ptypeWarn = document.getElementById('ptypeWarn');
+    return !isVisible(reqMsg) && !isVisible(ptypeWarn);
+  }
+
+  if (calcBtn && actions) {
+    calcBtn.addEventListener('click', () => {
+      // Let existing validation and rendering run first
+      setTimeout(() => {
+        if (shouldShowActions()) {
+          actions.style.display = 'block';
+        } else {
+          actions.style.display = 'none';
+        }
+      }, 0);
+    });
+  }
+
+  if (resetBtn && actions) {
+    resetBtn.addEventListener('click', () => {
+      actions.style.display = 'none';
+    });
+  }
+
+
+  const copyBtn = document.getElementById('copyBtn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      try { track('results_copied', { production_type: window.assessmentState?.productionType || 'unknown' }); } catch(e){}
+    });
+  }
+
+  const printBtn = document.getElementById('printBtn');
+  if (printBtn) {
+    printBtn.addEventListener('click', () => {
+      try { track('results_printed', { production_type: window.assessmentState?.productionType || 'unknown' }); } catch(e){}
+    });
+  }
+
+  const contactBtn = document.getElementById('contactExpertBtn');
+  if (contactBtn) {
+    contactBtn.addEventListener('click', () => {
+      try { track('contact_expert_opened', { production_type: window.assessmentState?.productionType || 'unknown' }); } catch(e){}
+      // If you later wire a modal/webhook, do it here.
+    });
+  }
+});
+</script>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  const copyBtn = document.getElementById('copyBtn');
+  if (copyBtn && typeof copyResults === 'function') copyBtn.onclick = copyResults;
+
+  const printBtn = document.getElementById('printBtn');
+  if (printBtn && typeof printResults === 'function') printBtn.onclick = printResults;
+
+  const contactBtn = document.getElementById('contactExpertBtn');
+  const modal = document.getElementById('discussModal');
+  const backdrop = document.getElementById('modalBackdrop');
+  if (contactBtn && modal && backdrop) {
+    contactBtn.onclick = function () {
+      modal.style.display = 'block';
+      backdrop.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    };
+  }
+
+  const resetBtn = document.getElementById('resetBtn');
+  const actions = document.getElementById('resultsActions');
+  if (resetBtn && actions) {
+    resetBtn.addEventListener('click', function () {
+      actions.style.display = 'none';
+    });
+  }
+
+const aiBtn = document.getElementById('aiDiscussBtn');
+const aiInline = document.getElementById('aiInlineHelp');
+
+if (aiBtn && aiInline) {
+  aiBtn.addEventListener('click', () => {
+    aiInline.style.display = 'block';
+
+    try {
+      track('ai_inline_shown', {
+        production_type: window.assessmentState?.productionType || 'unknown'
+      });
+    } catch (e) {}
+
+    aiInline.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+}
+
+
+});
+</script>
+
+<!-- Zapier AI Chatbot Popup -->
+<script async type="module"
+  src="https://interfaces.zapier.com/assets/web-components/zapier-interfaces/zapier-interfaces.esm.js">
+</script>
+<zapier-interfaces-chatbot-embed
+  chatbot-id="cml50ztkd005dtsrvp9tsl8hb"
+  is-popup="true">
 </zapier-interfaces-chatbot-embed>
-<!-- End Zapier Chatbot -->
+
 
 </body>
 </html>
-
 
