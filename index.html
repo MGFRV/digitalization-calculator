@@ -1,11 +1,11 @@
 <!doctype html>
-<!-- build: calc.industry4.co | v0.7.6.1 | 2026-02-04 |  -->
+<!-- build: calc.industry4.co | v0.7.6.2 | 2026-02-05 |  -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
-  <meta name="app-version" content="v0.7.6.1" />
+  <meta name="app-version" content="v0.7.6.2" />
   <title>Industrial Digitalization Calculator</title>
   <style>
     :root { --max: 40; } /* 20 questions * 2 points */
@@ -103,7 +103,7 @@
 
     .note { font-size: 12px; color: #555; line-height: 1.35; white-space: pre-line; }
     .foot { margin-top: 12px; font-size: 12px; color: #666; }
-    .req { color: #b00020; font-size: 12px; display: none; margin-top: 8px; }
+    .req { color: #b00020; font-size: 16px; display: none; margin-top: 8px; }
 
     .banner {
       border: 1px solid #efeff1;
@@ -128,7 +128,7 @@
     }
     .tag input { margin: 0; }
     .small { font-size: 12px; color: #666; line-height: 1.35; margin-top: 6px; }
-    .warn { color: #b00020; font-size: 12px; display: none; margin-top: 8px; }
+    .warn { color: #b00020; font-size: 16px; display: none; margin-top: 8px; }
   
     /* Progressive disclosure states */
     details.section.locked {
@@ -269,6 +269,18 @@
   }
 }
 
+@keyframes shake {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-4px); }
+  40%  { transform: translateX(4px); }
+  60%  { transform: translateX(-4px); }
+  80%  { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+.shake {
+  animation: shake 0.4s ease-in-out;
+}
 
 </style>
 
@@ -287,6 +299,20 @@
   }
 </script>
 
+<script>
+  /* helpers */
+  function showAndShake(el) {
+    if (!el) return;
+
+    el.style.display = "block";
+
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.classList.add("shake");
+      setTimeout(() => el.classList.remove("shake"), 400);
+    }
+  }
+</script>
+
 </head>
 
 <body>
@@ -294,16 +320,6 @@
     <header>
       <h1>Industrial Digitalization Calculator</h1>
       <p>Answer 20 short questions to estimate your industrial digital maturity across production, maintenance, quality, warehouse, energy, safety, and data integration.</p>
-
-      <div class="banner" aria-label="Production type selector">
-        <h3>Production type</h3>
-        <div class="row">
-          <label class="tag"><input type="radio" name="ptype" value="discrete" /> Discrete</label>
-          <label class="tag"><input type="radio" name="ptype" value="process" /> Process</label>
-          <label class="tag"><input type="radio" name="ptype" value="not_sure" /> Not sure</label>
-        </div>
-                <div class="warn" id="ptypeWarn">Select a production type to calculate recommendations.</div>
-      </div>
 
       <div class="progress" aria-label="Progress">
         <div id="progressFill"></div>
@@ -320,10 +336,22 @@
       <main class="card" aria-label="Questionnaire">
         <h2>Questionnaire</h2>
         <p class="muted">Choose one answer per question. You can calculate anytime.</p>
+		
+		      <div class="banner" aria-label="Production type selector">
+        <h3>Select your production type</h3>
+        <div class="row">
+          <label class="tag"><input type="radio" name="ptype" value="discrete" /> Discrete</label>
+          <label class="tag"><input type="radio" name="ptype" value="process" /> Process</label>
+          <label class="tag"><input type="radio" name="ptype" value="not_sure" /> Not sure</label>
+        </div>
+                <div class="warn" id="ptypeWarn">Select a production type to calculate recommendations.</div>
+      </div>
+		
         <div class="req" id="reqMsg">Please answer at least one question to calculate.</div>
 
         <!-- SECTION 1 -->
         <details class="section" data-section="1" open>
+		
           <summary>1) Production Planning and Scheduling</summary>
 
           <div class="q" data-domain="planning">
@@ -1169,12 +1197,28 @@ function calculate() {
       const answered = getAnsweredCount();
       const effectiveType = getProductionTypeEffective();
 
-      // validate
-      if (answered === 0) {
-        reqMsg.style.display = "block";
-        return;
-      }
-      reqMsg.style.display = "none";
+		if (!answered) {
+		  reqMsg.style.display = "block";
+		
+		  if (typeof reqMsg.scrollIntoView === "function") {
+		    reqMsg.scrollIntoView({
+		      behavior: "smooth",
+		      block: "center"
+		    });
+		  }
+		  
+		    setTimeout(() => {
+			    reqMsg.classList.add("shake");
+			
+			    setTimeout(() => {
+			      reqMsg.classList.remove("shake");
+			    }, 400);
+			
+			  }, 300);
+					
+		  return;
+		}
+
 
       if (!effectiveType) {
         ptypeWarn.style.display = "block";
@@ -1183,6 +1227,16 @@ function calculate() {
         if (warnEl && typeof warnEl.scrollIntoView === "function") {
           warnEl.scrollIntoView({ behavior: "smooth", block: "center" });
         }
+		
+				    setTimeout(() => {
+			    reqMsg.classList.add("shake");
+			
+			    setTimeout(() => {
+			      ptypeWarn.classList.remove("shake");
+			    }, 400);
+			
+			  }, 300);
+		
         return;
       }
       ptypeWarn.style.display = "none";
@@ -1600,7 +1654,7 @@ const discussBtn = document.getElementById("discussBtn");
 </script>
 
   <div style="text-align:center; color:#aaa; font-size:11px; padding:18px 0;">
-    Build v0.7.6.1
+   Powered by MDCplus | Build v0.7.6.2
   </div>
 
 
@@ -1760,6 +1814,9 @@ if (aiBtn && aiInline) {
   chatbot-id="cml50ztkd005dtsrvp9tsl8hb"
   is-popup="true">
 </zapier-interfaces-chatbot-embed>
+
+
+
 	
 <!-- test -->
 <script>
@@ -1807,6 +1864,5 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 </body>
 </html>
-
 
 
