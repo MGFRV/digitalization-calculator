@@ -1584,19 +1584,6 @@ const discussBtn = document.getElementById("discussBtn");
 
     window.assessmentState = saved;
 
-    // Optional visual hint
-    const hint = document.createElement('div');
-    hint.style.cssText = `
-      background:#F2F2F2;
-      border:1px solid #cfe3ff;
-      border-radius:10px;
-      padding:10px 12px;
-      font-size:13px;
-      margin-bottom:12px;
-    `;
-    hint.textContent = 'Your test results were shared with an expert. You may close this window.';
-    document.getElementById('results')?.prepend(hint);
-
   } catch (e) {
     console.warn('Failed to restore assessment state', e);
   }
@@ -1820,5 +1807,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 </body>
 </html>
+
 
 
