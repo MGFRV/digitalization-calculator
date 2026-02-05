@@ -311,6 +311,51 @@
       setTimeout(() => el.classList.remove("shake"), 400);
     }
   }
+  
+let autoWebhookSent = false;
+
+function sendAutoWebhookFromStorage() {
+  if (autoWebhookSent) return;
+
+  const raw = localStorage.getItem("i4_calc_result");
+  if (!raw) return;
+
+  let state;
+  try {
+    state = JSON.parse(raw);
+  } catch (e) {
+    return; // битый JSON — выходим тихо
+  }
+
+  autoWebhookSent = true;
+
+  const params = new URLSearchParams();
+
+  params.append("source", "digitalization_calculator");
+  params.append("trigger", "auto_after_calculate");
+  params.append("timestamp", new Date().toISOString());
+
+  params.append("productionType", state.productionType || "");
+  params.append("overallScore", state.overallScore ?? "");
+  params.append("maturityLevel", state.maturityLevel || "");
+
+  params.append("domainScores", JSON.stringify(state.domainScores || {}));
+  params.append("answersRaw", JSON.stringify(state.answersRaw || {}));
+  params.append("roadmapText", state.roadmapText || "");
+
+  fetch("https://hooks.zapier.com/hooks/catch/19492636/ulj6epz/", {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+    },
+    body: params.toString()
+  }).catch(() => {
+    // intentionally silent
+  });
+}
+
+		
 </script>
 
 </head>
@@ -1323,11 +1368,12 @@ function calculate() {
 		    'i4_calc_result',
 		    JSON.stringify(window.assessmentState)
 		  );
-		} catch (e) {
+		} 
+		catch (e) {
 		  console.warn('Failed to persist assessment state', e);
 		}
 
-
+	  
       
      const roadmapTitleEl = document.getElementById("roadmapTitle");
 		if (roadmapTitleEl) {
@@ -1344,6 +1390,8 @@ function calculate() {
 		}
 	      const ra = document.getElementById("resultActions"); if (ra) ra.style.display = "none";
 		  
+		
+		  
 		  const anchor = document.getElementById("domain-planning");
 			if (anchor) {
 			  const top =
@@ -1356,7 +1404,10 @@ function calculate() {
 			    behavior: "smooth"
 			  });
 			}
-	  
+			
+
+		//sendAutoWebhook(window.assessmentState);
+		sendAutoWebhookFromStorage();
 	  }
 
 
@@ -1642,6 +1693,8 @@ const discussBtn = document.getElementById("discussBtn");
       body: params.toString()
     });
   }
+  
+  
 
   shareBtn.addEventListener("click", async () => {
     const name = document.getElementById("inpName").value.trim();
@@ -1669,8 +1722,8 @@ const discussBtn = document.getElementById("discussBtn");
     }
 
     const fields = {
-      source: "DigiCalc",
-      build_version: "0.7.6.2",
+      source: "digitalization_calculator",
+      build_version: "0.7.6",
       timestamp: new Date().toISOString(),
 
       name,
@@ -1952,4 +2005,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 </body>
 </html>
+
+
 
