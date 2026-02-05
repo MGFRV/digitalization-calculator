@@ -576,7 +576,7 @@
       </main>
 
       <aside class="card" aria-label="Results" id="results">
-        <h2>Results</h2>
+        <h2 id="resultsTitle">Results</h2>
         <div class="muted">Your score updates after you click Calculate. You can still change answers and recalculate.</div>
 
         <div class="divider"></div>
@@ -723,6 +723,10 @@
 
         const row = document.createElement("div");
         row.className = "barrow";
+		
+		    if (d.key === "planning") {
+		      row.id = "domain-planning";
+		    }
 
         const label = document.createElement("div");
         label.className = "barlabel";
@@ -746,6 +750,14 @@
         barsEl.appendChild(row);
       });
     }
+	
+	function hideValidationErrors() {
+	  const reqMsg = document.getElementById('reqMsg');
+	  const ptypeWarn = document.getElementById('ptypeWarn');
+	
+	  if (reqMsg) reqMsg.style.display = 'none';
+	  if (ptypeWarn) ptypeWarn.style.display = 'none';
+	}
 
     // Roadmap logic - production-type aware
     // Not sure is treated as Discrete (effective type).
@@ -1192,6 +1204,22 @@
         lbl.classList.toggle('selected', inp.checked);
       });
     }
+	
+	
+	function scrollToBlockTop(el, offset = 0) {
+  if (!el) return;
+
+  const top =
+    el.getBoundingClientRect().top +
+    window.pageYOffset -
+    offset;
+
+  window.scrollTo({
+    top,
+    behavior: "smooth"
+  });
+}
+	
 
 function calculate() {
       const answered = getAnsweredCount();
@@ -1241,7 +1269,6 @@ function calculate() {
 		}
 
       ptypeWarn.style.display = "none";
-      const ra = document.getElementById("resultActions"); if (ra) ra.style.display = "none";
       updateProgressiveDisclosure();
       syncSelectedLabels();
 
@@ -1285,14 +1312,23 @@ function calculate() {
 	  if (nextStepsEl) {
 		  nextStepsEl.innerHTML = formatRoadmapToHTML(roadmap);
 		}
-      document.getElementById("resultActions").style.display = "flex";
+	      const ra = document.getElementById("resultActions"); if (ra) ra.style.display = "none";
+		  
+		  const anchor = document.getElementById("domain-planning");
+			if (anchor) {
+			  const top =
+			    anchor.getBoundingClientRect().top +
+			    window.pageYOffset -
+			    220;
+			
+			  window.scrollTo({
+			    top,
+			    behavior: "smooth"
+			  });
+			}
+	  
+	  }
 
-      // Jump to Results (mobile-friendly)
-      const resultsEl = document.getElementById("results");
-      if (resultsEl && typeof resultsEl.scrollIntoView === "function") {
-        resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }
 
     function resetAll() {
       requestAnimationFrame(() => {
@@ -1320,7 +1356,7 @@ overallScoreEl.textContent = "0%";
       // nextSteps placeholder set above as HTML
       reqMsg.style.display = "none";
       ptypeWarn.style.display = "none";
-      const ra = document.getElementById("resultActions"); if (ra) ra.style.display = "none";
+      const ra = document.getElementById("resultActions"); if (ra) ra.style.display = "flex";
       updateProgressiveDisclosure();
       syncSelectedLabels();
 	  
@@ -1477,6 +1513,27 @@ document.addEventListener("change", (e) => {
       syncSelectedLabels();
 }
     });
+	
+document.addEventListener('DOMContentLoaded', () => {
+
+  // production type
+  document
+    .querySelectorAll('input[name="productionType"], .tag')
+    .forEach(el => {
+      el.addEventListener('change', hideValidationErrors);
+      el.addEventListener('click', hideValidationErrors);
+    });
+
+  // answers
+  document
+    .querySelectorAll('input[type="radio"]')
+    .forEach(input => {
+      input.addEventListener('change', hideValidationErrors);
+    });
+
+});
+
+	
 calcBtn.addEventListener("click", calculate);
     resetBtn.addEventListener("click", resetAll);
 
@@ -1865,7 +1922,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 </body>
 </html>
-
 
 
 
