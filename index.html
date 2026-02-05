@@ -1196,8 +1196,29 @@
 function calculate() {
       const answered = getAnsweredCount();
       const effectiveType = getProductionTypeEffective();
+		
 
-		if (!answered) {
+      if (!effectiveType) {
+        ptypeWarn.style.display = "block";
+        // Scroll to production type warning
+        const warnEl = document.getElementById("ptypeWarn");
+        if (warnEl && typeof warnEl.scrollIntoView === "function") {
+          warnEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+		
+				    setTimeout(() => {
+			    reqMsg.classList.add("shake");
+			
+			    setTimeout(() => {
+			      ptypeWarn.classList.remove("shake");
+			    }, 400);
+			
+			  }, 300);
+		
+        return;
+      }
+
+	if (!answered) {
 		  reqMsg.style.display = "block";
 		
 		  if (typeof reqMsg.scrollIntoView === "function") {
@@ -1219,26 +1240,6 @@ function calculate() {
 		  return;
 		}
 
-
-      if (!effectiveType) {
-        ptypeWarn.style.display = "block";
-        // Scroll to production type warning
-        const warnEl = document.getElementById("ptypeWarn");
-        if (warnEl && typeof warnEl.scrollIntoView === "function") {
-          warnEl.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-		
-				    setTimeout(() => {
-			    reqMsg.classList.add("shake");
-			
-			    setTimeout(() => {
-			      ptypeWarn.classList.remove("shake");
-			    }, 400);
-			
-			  }, 300);
-		
-        return;
-      }
       ptypeWarn.style.display = "none";
       const ra = document.getElementById("resultActions"); if (ra) ra.style.display = "none";
       updateProgressiveDisclosure();
@@ -1864,5 +1865,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 </body>
 </html>
+
 
 
