@@ -685,6 +685,20 @@
       progressFill.style.width = pct + "%";
       progressText.textContent = `${answered} of 20 answered`;
     }
+	
+	let eliteTracked = false;
+
+		function trackEliteCompletion() {
+		  if (eliteTracked) return;
+		  eliteTracked = true;
+		
+		  if (typeof gtag === "function") {
+		    gtag("event", "elite_completion", {
+		      completion_level: "elite",
+		      score_pct: 100
+		    });
+		  }
+		}
 
     function getScores() {
       const domainScores = Object.fromEntries(domains.map(d => [d.key, 0]));
@@ -769,6 +783,8 @@
       const energyPct = pctOf(domainScores.energy, 4);
       const safetyPct = pctOf(domainScores.safety, 4);
       const dataPct = pctOf(domainScores.data, 6);
+	  
+	  const avgPct = Math.round((planningPct + maintenancePct + qualityPct + warehousePct + energyPct + safetyPct + dataPct) / 7);
 
       const q3 = document.querySelector('input[name="q3"]:checked')?.value;   // fact capture
       const q6 = document.querySelector('input[name="q6"]:checked')?.value;   // maintenance mode (0 means breakdowns)
@@ -851,6 +867,17 @@
       const second = secondBestNonBlocker(domainScores, effectiveType, next?.key);
 
       const out = [];
+	  
+	    if (avgPct === 100) {
+		    trackEliteCompletion();
+		
+		    return [
+		      "Elite digital maturity achieved 🏆\n" +
+		      "You have reached full digital maturity. At this level, further gains come " +
+		      "from scale, leverage, and strategic use of data rather than incremental improvements."
+		    ];
+		  }
+	  
       if (next) {
         out.push(next.title);
         out.push(`Why: ${next.why}`);
@@ -867,7 +894,9 @@
       }
 
       // If very mature, add an optimization step
-      const avgPct = Math.round((planningPct + maintenancePct + qualityPct + warehousePct + energyPct + safetyPct + dataPct) / 7);
+
+	 
+
       if (avgPct >= 70) {
         out.push("");
         if (effectiveType === "process") {
@@ -902,6 +931,7 @@
       // Type-specific weighting for prioritization
       // Discrete - planning, maintenance, warehouse, data
       // Process - quality, energy, maintenance, data
+	  
       const candidates = [
         { key: "planning", pct: pPlanning, weight: (effectiveType === "process" ? 0.8 : 1.2) },
         { key: "maintenance", pct: pMaintenance, weight: (effectiveType === "process" ? 1.2 : 1.2) },
@@ -1922,6 +1952,3 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 </body>
 </html>
-
-
-
