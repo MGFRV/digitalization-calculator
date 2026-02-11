@@ -1,12 +1,12 @@
 <!doctype html>
-<!-- build: calc.industry4.co | v0.7.6.3 | 2026-02-05 |  -->
+<!-- build: calc.industry4.co | v0.7.6.4 | 2026-02-05 |  -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="robots" content="noindex" />
-  <meta name="app-version" content="v0.7.6.3" />
-  <title>Industrial Digitalization Calculator</title>
+  <meta name="app-version" content="v0.7.6.4" />
+  <title>>Manufacturing Digital Maturity Assessment: AI-powered production audit</title>
+  <meta name="description" content="Evaluate your manufacturing digital maturity across production, maintenance, quality, warehouse, energy, safety and data integration. AI-powered assessment with instant maturity score and gap analysis.">
   <style>
     :root { --max: 40; } /* 20 questions * 2 points */
     body {
@@ -324,7 +324,7 @@ function sendAutoWebhookFromStorage() {
   try {
     state = JSON.parse(raw);
   } catch (e) {
-    return; // битый JSON — выходим тихо
+    return;
   }
 
   autoWebhookSent = true;
@@ -363,10 +363,39 @@ function sendAutoWebhookFromStorage() {
 <body>
   <div class="wrap">
     <header>
-      <h1>Industrial Digitalization Calculator</h1>
-      <p>Answer 20 short questions to estimate your industrial digital maturity across production, maintenance, quality, warehouse, energy, safety, and data integration.</p>
+      <h1>Manufacturing Digital Maturity Assessment: AI-powered production audit</h1>
+      <p>Answer 20 targeted questions to run a manufacturing digital maturity assessment of your production environment. Instantly receive your maturity score, structured gap analysis, and prioritized improvement roadmap across operations, maintenance, quality, warehouse, energy, safety, and data integration - ready to review with your team or explore further with the embedded AI assistant.</p>
 
-      <div class="progress" aria-label="Progress">
+		<script type="application/ld+json">
+	  {
+	    "@context": "https://schema.org",
+	    "@type": "SoftwareApplication",
+	    "name": "Manufacturing Digital Maturity Assessment: AI-powered production audit",
+	    "applicationCategory": "BusinessApplication",
+	    "operatingSystem": "Web",
+	    "url": "https://calc.industry.co/",
+	    "description": "AI-powered manufacturing digital maturity assessment tool that evaluates production, maintenance, quality, warehouse, energy, safety, and data integration. Provides an instant maturity score, structured gap analysis, and prioritized improvement roadmap.",
+	    "featureList": [
+	      "Manufacturing digital maturity scoring",
+	      "Operational gap analysis",
+	      "Prioritized improvement roadmap",
+	      "AI-assisted recommendations",
+	      "Coverage across production, maintenance, quality, warehouse, energy, safety and data integration"
+	    ],
+	    "offers": {
+	      "@type": "Offer",
+	      "price": "0",
+	      "priceCurrency": "USD"
+	    },
+	    "provider": {
+	      "@type": "Organization",
+	      "name": "MDCplus",
+	      "url": "https://mdcplus.fi"
+	    }
+	  }
+	  </script>
+		
+		<div class="progress" aria-label="Progress">
         <div id="progressFill"></div>
       </div>
       <div class="muted" id="progressText" style="margin-top:8px;">0 of 20 answered</div>
@@ -1795,7 +1824,7 @@ const discussBtn = document.getElementById("discussBtn");
 </script>
 
   <div style="text-align:center; color:#aaa; font-size:11px; padding:18px 0;">
-   Powered by MDCplus | Build v0.7.6.3
+   Powered by MDCplus | Build v0.7.6.4
   </div>
 
 
@@ -2005,6 +2034,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 </body>
 </html>
+
 
 
 
